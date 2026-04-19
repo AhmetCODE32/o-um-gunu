@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Heart, Star, Shield, Lock, Unlock, Terminal } from 'lucide-react';
+import { Sparkles, Heart, Star, Shield, Lock, Unlock, Terminal, Database } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { logSpyTerm, getSpyLogs } from './firebase';
 
 const CONFIG = {
   friendName: "Doğukan",
@@ -25,13 +26,26 @@ export default function App() {
   const [isRedAlert, setIsRedAlert] = useState(false);
   const [showMobileInput, setShowMobileInput] = useState(false);
   const [mobileInputValue, setMobileInputValue] = useState('');
-  const keyBuffer = useRef('');
+  
+  // Spy Logs
+  const [spyLogs, setSpyLogs] = useState<{ id: string, term: string, date: Date }[] | null>(null);
+  const [showSpyModal, setShowSpyModal] = useState(false);
+
+  // Ekranda klavye vuruşlarını göstermek için state
+  const [typedBuffer, setTypedBuffer] = useState('');
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sırları tetikleyen ana fonksiyon
   const checkSecretCodes = (text: string) => {
     const buffer = text.slice(-20).toUpperCase();
 
-    if (buffer.includes("AHMET")) {
+    if (buffer.includes("AHMETADMIN")) {
+      getSpyLogs().then(logs => {
+        setSpyLogs(logs);
+        setShowSpyModal(true);
+      });
+      return true;
+    } else if (buffer.includes("AHMET")) {
       setEasterEgg("🤍 En iyi dostun her zaman kalacak.");
       setIsRedAlert(false);
       triggerConfetti(true);
@@ -72,17 +86,42 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Input açıkken (mobil gizli mod) global eylemi yoksay
+      if (document.activeElement?.tagName === 'INPUT') return;
+
+      if (e.key === 'Enter') {
+        setTypedBuffer(prev => {
+          if (prev.length > 2) logSpyTerm(prev);
+          return "";
+        });
+        return;
+      }
+
       // Sadece harfleri ve tekil tuşları al (Shift vs. yoksay)
       if (e.key.length !== 1) return;
 
       // Türkçe ve İngilizce karakterleri büyük harfe çevir
       const char = e.key.toLocaleUpperCase('tr-TR');
-      keyBuffer.current = keyBuffer.current + char;
       
-      const isMatched = checkSecretCodes(keyBuffer.current);
-      if (isMatched) {
-        keyBuffer.current = "";
-      }
+      setTypedBuffer(prev => {
+        const newBuffer = (prev + char).slice(-20);
+        
+        const isMatched = checkSecretCodes(newBuffer);
+        if (isMatched) {
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          return "";
+        }
+        
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypedBuffer(currentBuf => {
+            if (currentBuf.length > 2) logSpyTerm(currentBuf);
+            return "";
+          });
+        }, 3000); // 3 saniye basılmazsa kaydet ve sil
+        
+        return newBuffer;
+      });
     };
     
     window.addEventListener('keydown', handleKeyDown);
@@ -152,6 +191,26 @@ export default function App() {
   return (
     <div className="relative min-h-[100dvh] bg-[#030305] text-[#F3F4F6] overflow-hidden flex items-center justify-center p-3 sm:p-6 font-sans selection:bg-[#A78BFA] selection:text-white">
       
+      {/* Gizli Tuş Vuruşu Bildirimi (Neler yazıldığını gösteren Ghost/HUD efekti) */}
+      <AnimatePresence>
+        {typedBuffer && !showMobileInput && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[90] pointer-events-none"
+          >
+            <div className="bg-[#0f0f13]/80 border border-white/10 px-4 py-2 rounded-lg backdrop-blur-md shadow-2xl">
+              <span className="font-mono text-[#A78BFA]/70 tracking-[0.3em] font-bold text-sm">
+                {typedBuffer}
+                <span className="animate-pulse">_</span>
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Gizli Easter Egg Bildirimi */}
       <AnimatePresence>
         {easterEgg && (
@@ -325,8 +384,18 @@ export default function App() {
                             autoFocus
                             value={mobileInputValue}
                             onChange={handleMobileInputChange}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (mobileInputValue.length > 2) logSpyTerm(mobileInputValue);
+                                setMobileInputValue("");
+                                setShowMobileInput(false);
+                              }
+                            }}
                             placeholder="Gizli Şifre?"
-                            onBlur={() => setShowMobileInput(false)}
+                            onBlur={() => {
+                              if (mobileInputValue.length > 2) logSpyTerm(mobileInputValue);
+                              setShowMobileInput(false);
+                            }}
                             className="w-full bg-black/60 backdrop-blur-md border border-[#818CF8]/30 rounded-lg py-2 px-3 text-white placeholder-white/30 focus:outline-none focus:border-[#E879F9]/60 uppercase tracking-widest text-xs shadow-xl"
                           />
                         </motion.div>
@@ -341,6 +410,48 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* SPY MODAL (Ajan Ekranı) */}
+      <AnimatePresence>
+        {showSpyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+          >
+            <div className="bg-[#0f0f13] border border-red-500/30 rounded-2xl w-full max-w-lg p-6 h-[80vh] flex flex-col shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3 text-red-500">
+                  <Database className="w-5 h-5 animate-pulse" />
+                  <h3 className="font-bold tracking-widest text-sm uppercase">Ajan Kayıtları</h3>
+                </div>
+                <button 
+                  onClick={() => setShowSpyModal(false)} 
+                  className="text-white/40 hover:text-white text-xs tracking-widest font-medium uppercase transition-colors"
+                >
+                  KAPAT [X]
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 space-y-3 custom-scrollbar pr-2">
+                {spyLogs && spyLogs.length > 0 ? (
+                  spyLogs.map(log => (
+                    <div key={log.id} className="bg-red-500/5 border border-red-500/10 p-4 rounded-xl flex justify-between items-center gap-4">
+                      <span className="text-red-100 font-mono tracking-widest text-sm break-all">{log.term}</span>
+                      <span className="text-red-500/50 text-[10px] whitespace-nowrap">
+                        {log.date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} - {log.date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-white/30 text-center py-10 font-mono text-sm tracking-widest">Hiçbir veri bulunamadı.</p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

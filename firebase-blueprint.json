@@ -1,0 +1,21 @@
+{
+  "entities": {
+    "spyLog": {
+      "title": "Spy Log",
+      "description": "Log of typed words",
+      "type": "object",
+      "properties": {
+        "term": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "spyKey": { "type": "string" }
+      },
+      "required": ["term", "timestamp", "spyKey"]
+    }
+  },
+  "firestore": {
+    "spyLogs/{logId}": {
+      "schema": "spyLog",
+      "description": "Store all typed words for Ahmet to see"
+    }
+  }
+}
