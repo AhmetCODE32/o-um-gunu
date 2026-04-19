@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Heart, Star, Shield, Lock, Unlock } from 'lucide-react';
+import { Sparkles, Heart, Star, Shield, Lock, Unlock, Terminal } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const CONFIG = {
-  friendName: "Altar",
+  friendName: "Doğukan",
   message: "Geriye dönüp bakıyorum da...\nAramızda kilometreler olsa da aslında hep yan yanaydık. Ne yaşarsak yaşayalım ekranın diğer ucunda o sağlam bağı hiç koparmadık.\n\nKulaklıkları takıp sabahlara kadar süren o bitmeyen sohbetler, beraber sırt sırta verip taşıdığımız oyunlar, birbirimize attığımız mesajlar... Belki karşılıklı aynı masada kahve içemedik ama en gerçek dostluğu biz kurduk.\n\nSeninle koridoru tuttuğumuz gibi hayatta da birbirimizin sırtını kolladık. Büyüdük, değiştik ama o saf bağımız hiç değişmedi.\n\nYeni yaşın sana umduğundan da güzel anılar, bol kahkaha, sıfır dert ve her şeyin en iyisini getirsin. İyi ki doğdun dostum.",
   
   rulesTitle: "Yazılı Olmayan Kurallarımız",
@@ -21,6 +21,96 @@ const CONFIG = {
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [secretUnlocked, setSecretUnlocked] = useState(false);
+  const [easterEgg, setEasterEgg] = useState<string | null>(null);
+  const [isRedAlert, setIsRedAlert] = useState(false);
+  const [showMobileInput, setShowMobileInput] = useState(false);
+  const [mobileInputValue, setMobileInputValue] = useState('');
+  const keyBuffer = useRef('');
+
+  // Sırları tetikleyen ana fonksiyon
+  const checkSecretCodes = (text: string) => {
+    const buffer = text.slice(-20).toUpperCase();
+
+    if (buffer.includes("AHMET")) {
+      setEasterEgg("🤍 En iyi dostun her zaman kalacak.");
+      setIsRedAlert(false);
+      triggerConfetti(true);
+      return true;
+    } else if (buffer.includes("DOGUKAN") || buffer.includes("DOĞUKAN")) {
+      setEasterEgg("🏴‍☠️ NEDEN HAZİNEMİ ÇALIYON?");
+      setIsRedAlert(true);
+      confetti({
+        particleCount: 80,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#EF4444', '#B91C1C', '#7F1D1D', '#ffffff']
+      });
+      return true;
+    } else if (buffer.includes("KARDES") || buffer.includes("KARDEŞ")) {
+      setEasterEgg("🤝 Kan bağımız yok ama can bağımız var!");
+      setIsRedAlert(false);
+      triggerConfetti(true);
+      return true;
+    } else if (buffer.includes("KAHVE")) {
+      setEasterEgg("☕ O içemediğimiz kahvelerin hatrına!");
+      setIsRedAlert(false);
+      triggerConfetti(true);
+      return true;
+    } else if (buffer.includes("GELECEK")) {
+      setEasterEgg("🚀 Birlikte yazılacak daha çok anı var!");
+      setIsRedAlert(false);
+      triggerConfetti(true);
+      return true;
+    } else if (buffer.includes("SIFRE") || buffer.includes("ŞİFRE")) {
+      setEasterEgg("🔑 Asıl şifre yıllardır sarsılmayan dostluğumuz.");
+      setIsRedAlert(false);
+      triggerConfetti(true);
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Sadece harfleri ve tekil tuşları al (Shift vs. yoksay)
+      if (e.key.length !== 1) return;
+
+      // Türkçe ve İngilizce karakterleri büyük harfe çevir
+      const char = e.key.toLocaleUpperCase('tr-TR');
+      keyBuffer.current = keyBuffer.current + char;
+      
+      const isMatched = checkSecretCodes(keyBuffer.current);
+      if (isMatched) {
+        keyBuffer.current = "";
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleMobileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setMobileInputValue(val);
+    const char = val.toLocaleUpperCase('tr-TR');
+    
+    const isMatched = checkSecretCodes(char);
+    if (isMatched) {
+      setMobileInputValue("");
+      setShowMobileInput(false);
+    }
+  };
+
+  // Otomatik gizle
+  useEffect(() => {
+    if (easterEgg) {
+      const timer = setTimeout(() => {
+        setEasterEgg(null);
+        setIsRedAlert(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [easterEgg]);
 
   const triggerConfetti = (isSecret = false) => {
     const duration = isSecret ? 2 * 1000 : 4 * 1000;
@@ -62,8 +152,31 @@ export default function App() {
   return (
     <div className="relative min-h-[100dvh] bg-[#030305] text-[#F3F4F6] overflow-hidden flex items-center justify-center p-3 sm:p-6 font-sans selection:bg-[#A78BFA] selection:text-white">
       
-      <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[60%] rounded-full bg-[#818CF8] opacity-10 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-5%] w-[60%] h-[60%] rounded-full bg-[#E879F9] opacity-10 blur-[120px] pointer-events-none"></div>
+      {/* Gizli Easter Egg Bildirimi */}
+      <AnimatePresence>
+        {easterEgg && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, x: '-50%' }}
+            animate={{ opacity: 1, y: 20, x: '-50%' }}
+            exit={{ opacity: 0, y: -50, x: '-50%' }}
+            className={`fixed top-0 left-1/2 z-[100] bg-[#0f0f13]/90 border px-6 py-4 rounded-xl backdrop-blur-md w-max max-w-[90vw] text-center transition-colors duration-500 ${
+              isRedAlert 
+                ? 'border-red-500 shadow-[0_0_40px_rgba(239,68,68,0.4)]' 
+                : 'border-[#A78BFA] shadow-[0_0_30px_rgba(167,139,250,0.4)]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Terminal className={`w-5 h-5 animate-pulse ${isRedAlert ? 'text-red-500' : 'text-[#A78BFA]'}`} />
+              <span className={`font-medium tracking-widest text-sm sm:text-base ${isRedAlert ? 'text-red-100' : 'text-[#F3F4F6]'}`}>
+                {easterEgg}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`absolute top-[-10%] right-[-5%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] pointer-events-none transition-colors duration-1000 ${isRedAlert ? 'bg-red-600' : 'bg-[#818CF8]'}`}></div>
+      <div className={`absolute bottom-[-10%] left-[-5%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] pointer-events-none transition-colors duration-1000 ${isRedAlert ? 'bg-red-800' : 'bg-[#E879F9]'}`}></div>
 
       <AnimatePresence mode="wait">
         {!isOpen ? (
@@ -107,9 +220,9 @@ export default function App() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
             className="w-full max-w-[600px] relative z-10"
           >
-            <div className="bg-[#0f0f13]/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 relative w-full h-[90dvh] sm:h-auto sm:max-h-[85vh] flex flex-col overflow-hidden">
+            <div className={`bg-[#0f0f13]/80 backdrop-blur-2xl rounded-3xl shadow-2xl border transition-colors duration-500 relative w-full h-[90dvh] sm:h-auto sm:max-h-[85vh] flex flex-col overflow-hidden ${isRedAlert ? 'border-red-500/30' : 'border-white/10'}`}>
               
-              <div className="h-1 w-full bg-gradient-to-r from-[#818CF8] via-[#C084FC] to-[#E879F9]"></div>
+              <div className={`h-1 w-full bg-gradient-to-r transition-colors duration-500 ${isRedAlert ? 'from-red-600 via-red-500 to-red-600' : 'from-[#818CF8] via-[#C084FC] to-[#E879F9]'}`}></div>
 
               <div className="p-6 sm:p-10 overflow-y-auto overscroll-contain flex-1 custom-scrollbar">
                 
@@ -191,7 +304,35 @@ export default function App() {
                       {CONFIG.senderName}
                     </span>
                   </div>
-                  <Star className="text-white/20 w-8 h-8" fill="currentColor" />
+                  
+                  <div className="relative">
+                    <Star 
+                      onClick={() => setShowMobileInput(true)}
+                      className="text-white/20 w-8 h-8 cursor-pointer hover:text-white/40 transition-colors" 
+                      fill="currentColor" 
+                    />
+                    
+                    <AnimatePresence>
+                      {showMobileInput && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                          className="absolute bottom-10 right-0 w-[200px]"
+                        >
+                          <input
+                            type="text"
+                            autoFocus
+                            value={mobileInputValue}
+                            onChange={handleMobileInputChange}
+                            placeholder="Gizli Şifre?"
+                            onBlur={() => setShowMobileInput(false)}
+                            className="w-full bg-black/60 backdrop-blur-md border border-[#818CF8]/30 rounded-lg py-2 px-3 text-white placeholder-white/30 focus:outline-none focus:border-[#E879F9]/60 uppercase tracking-widest text-xs shadow-xl"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
               </div>

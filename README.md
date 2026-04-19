@@ -1,6 +1,6 @@
 # Doğum Günü Kutlaması
 
-Bu proje, Altar için tamamen özel olarak tasarlanmış olan interaktif bir doğum günü sürprizi web sayfasıdır. 
+Bu proje, Doğukan için tamamen özel olarak tasarlanmış olan interaktif bir doğum günü sürprizi web sayfasıdır. 
 
 ## Proje Hakkında
 - **Tasarım:** Siyah, Mor ve Cam (Glassmorphism) detaylı özel arayüz.
