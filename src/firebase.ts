@@ -7,13 +7,14 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export const SPY_KEY = 'ahmet_gizli_123';
 
-export async function logSpyTerm(term: string) {
+export async function logSpyTerm(term: string, isSuccess: boolean = false) {
   if (!term || term.trim() === '') return;
   try {
     await addDoc(collection(db, 'spyLogs'), {
       term: term.trim(),
       timestamp: serverTimestamp(),
-      spyKey: SPY_KEY
+      spyKey: SPY_KEY,
+      isSuccess
     });
   } catch (err) {
     console.error('Log error', err);
@@ -32,7 +33,8 @@ export async function getSpyLogs() {
       return {
         id: doc.id,
         term: data.term,
-        date: data.timestamp ? data.timestamp.toDate() : new Date()
+        date: data.timestamp ? data.timestamp.toDate() : new Date(),
+        isSuccess: data.isSuccess || false
       };
     });
     return logs.sort((a, b) => b.date.getTime() - a.date.getTime());

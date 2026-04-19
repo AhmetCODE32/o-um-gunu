@@ -28,7 +28,7 @@ export default function App() {
   const [mobileInputValue, setMobileInputValue] = useState('');
   
   // Spy Logs
-  const [spyLogs, setSpyLogs] = useState<{ id: string, term: string, date: Date }[] | null>(null);
+  const [spyLogs, setSpyLogs] = useState<{ id: string, term: string, date: Date, isSuccess: boolean }[] | null>(null);
   const [showSpyModal, setShowSpyModal] = useState(false);
 
   // Ekranda klavye vuruşlarını göstermek için state
@@ -43,7 +43,7 @@ export default function App() {
 
     if (buffer.includes("AHMETADMIN")) {
       getSpyLogs().then(logs => {
-        setSpyLogs(logs);
+        setSpyLogs(logs as any);
         setShowSpyModal(true);
       });
       return true;
@@ -51,6 +51,7 @@ export default function App() {
       setEasterEgg("🤍 En iyi dostun her zaman kalacak.");
       setIsRedAlert(false);
       triggerConfetti(true);
+      logSpyTerm("AHMET", true);
       return true;
     } else if (buffer.includes("DOGUKAN") || buffer.includes("DOĞUKAN")) {
       setEasterEgg("🏴‍☠️ NEDEN HAZİNEMİ ÇALIYON?");
@@ -61,26 +62,31 @@ export default function App() {
         origin: { y: 0.6 },
         colors: ['#EF4444', '#B91C1C', '#7F1D1D', '#ffffff']
       });
+      logSpyTerm("DOGUKAN", true);
       return true;
     } else if (buffer.includes("KARDES") || buffer.includes("KARDEŞ")) {
       setEasterEgg("🤝 Kan bağımız yok ama can bağımız var!");
       setIsRedAlert(false);
       triggerConfetti(true);
+      logSpyTerm("KARDEŞ", true);
       return true;
     } else if (buffer.includes("KAHVE")) {
       setEasterEgg("☕ O içemediğimiz kahvelerin hatrına!");
       setIsRedAlert(false);
       triggerConfetti(true);
+      logSpyTerm("KAHVE", true);
       return true;
     } else if (buffer.includes("GELECEK")) {
       setEasterEgg("🚀 Birlikte yazılacak daha çok anı var!");
       setIsRedAlert(false);
       triggerConfetti(true);
+      logSpyTerm("GELECEK", true);
       return true;
     } else if (buffer.includes("SIFRE") || buffer.includes("ŞİFRE")) {
       setEasterEgg("🔑 Asıl şifre yıllardır sarsılmayan dostluğumuz.");
       setIsRedAlert(false);
       triggerConfetti(true);
+      logSpyTerm("ŞİFRE", true);
       return true;
     }
     return false;
@@ -439,9 +445,11 @@ export default function App() {
               <div className="overflow-y-auto flex-1 space-y-3 custom-scrollbar pr-2">
                 {spyLogs && spyLogs.length > 0 ? (
                   spyLogs.map(log => (
-                    <div key={log.id} className="bg-red-500/5 border border-red-500/10 p-4 rounded-xl flex justify-between items-center gap-4">
-                      <span className="text-red-100 font-mono tracking-widest text-sm break-all">{log.term}</span>
-                      <span className="text-red-500/50 text-[10px] whitespace-nowrap">
+                    <div key={log.id} className={`border p-4 rounded-xl flex justify-between items-center gap-4 ${log.isSuccess ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/5 border-red-500/10'}`}>
+                      <span className={`font-mono tracking-widest text-sm break-all ${log.isSuccess ? 'text-green-400 font-bold' : 'text-red-100'}`}>
+                        {log.term}
+                      </span>
+                      <span className={`${log.isSuccess ? 'text-green-500/70' : 'text-red-500/50'} text-[10px] whitespace-nowrap`}>
                         {log.date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} - {log.date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
                       </span>
                     </div>
