@@ -1,50 +1,46 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Heart, Star, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Heart, Star, Shield, Lock, Unlock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const CONFIG = {
   friendName: "Altar",
   message: "Geriye dönüp bakıyorum da...\nAramızda kilometreler olsa da aslında hep yan yanaydık. Ne yaşarsak yaşayalım ekranın diğer ucunda o sağlam bağı hiç koparmadık.\n\nKulaklıkları takıp sabahlara kadar süren o bitmeyen sohbetler, beraber sırt sırta verip taşıdığımız oyunlar, birbirimize attığımız mesajlar... Belki karşılıklı aynı masada kahve içemedik ama en gerçek dostluğu biz kurduk.\n\nSeninle koridoru tuttuğumuz gibi hayatta da birbirimizin sırtını kolladık. Büyüdük, değiştik ama o saf bağımız hiç değişmedi.\n\nYeni yaşın sana umduğundan da güzel anılar, bol kahkaha, sıfır dert ve her şeyin en iyisini getirsin. İyi ki doğdun dostum.",
   
-  // Resimlerin Yolları - SİTEYE YÜKLEDİĞİNDE BURADAKİ İSİMLERLE EŞLEŞECEK
-  memories: [
-    {
-      img: "/resim1.jpg", 
-      fallback: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
-      caption: "Yine taşıdığımız efsane maçlardan biri... MVP Noxaris!"
-    },
-    {
-      img: "/resim2.jpg",
-      fallback: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=600&auto=format&fit=crop",
-      caption: "Mesafe sadece bir sayıdan ibaret."
-    }
+  // İstatistikler yerine gelen 'Yazılı Olmayan Kurallarımız' konsepti
+  rulesTitle: "Yazılı Olmayan Kurallarımız",
+  rules: [
+    "Aramızdaki kilometreler sadece oyundaki ping'e yansır, dostluğumuza asla.",
+    "Oyun ne kadar kötü giderse gitsin, koridor ve sırdaşlık asla terk edilmez.",
+    "Gerçek hayatta da dijital dünyada da her zaman birbirimizin 'MVP'siyiz."
   ],
-  postScript: "Not: Bir gün o GG mesajını yan yana yazacağız!",
+  
+  secretMessage: "Senin gibi bir dost (ve harika bir duo) bulmak kolay değil. Nice beraber taşıyacağımız yeni yaşlara! GG WP!",
   senderName: "Ahmet"
 };
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
+  const [secretUnlocked, setSecretUnlocked] = useState(false);
 
-  const triggerConfetti = () => {
-    const duration = 4 * 1000;
+  const triggerConfetti = (isSecret = false) => {
+    const duration = isSecret ? 2 * 1000 : 4 * 1000;
     const end = Date.now() + duration;
 
     const frame = () => {
       confetti({
-        particleCount: 5,
+        particleCount: isSecret ? 15 : 5,
         angle: 60,
         spread: 55,
-        origin: { x: 0, y: 0.8 },
-        colors: ['#A78BFA', '#818CF8', '#C084FC', '#E879F9', '#ffffff'] // Elegant purples/blues
+        origin: { x: 0, y: isSecret ? 0.6 : 0.8 },
+        colors: isSecret ? ['#FDE047', '#E879F9', '#ffffff'] : ['#A78BFA', '#818CF8', '#C084FC', '#E879F9', '#ffffff']
       });
       confetti({
-        particleCount: 5,
+        particleCount: isSecret ? 15 : 5,
         angle: 120,
         spread: 55,
-        origin: { x: 1, y: 0.8 },
-        colors: ['#A78BFA', '#818CF8', '#C084FC', '#E879F9', '#ffffff']
+        origin: { x: 1, y: isSecret ? 0.6 : 0.8 },
+        colors: isSecret ? ['#FDE047', '#E879F9', '#ffffff'] : ['#A78BFA', '#818CF8', '#C084FC', '#E879F9', '#ffffff']
       });
 
       if (Date.now() < end) {
@@ -56,7 +52,12 @@ export default function App() {
 
   const handleOpen = () => {
     setIsOpen(true);
-    triggerConfetti();
+    triggerConfetti(false);
+  };
+
+  const handleUnlockSecret = () => {
+    setSecretUnlocked(true);
+    triggerConfetti(true);
   };
 
   return (
@@ -105,7 +106,7 @@ export default function App() {
             key="content"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // smooth spring-like ease
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
             className="w-full max-w-[600px] relative z-10"
           >
             {/* Elegant Glass Card */}
@@ -133,45 +134,61 @@ export default function App() {
                   {CONFIG.message}
                 </div>
 
-                {/* Match Highlight Memories */}
-                <div className="mb-12 space-y-6">
-                  {CONFIG.memories.map((photo, index) => (
-                    <motion.div 
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 + (index * 0.2), duration: 0.8 }}
-                      className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 p-2"
+                {/* YAZILI OLMAYAN KURALLAR BÖLÜMÜ (İstatistikler Yerine) */}
+                <div className="mb-12 space-y-4">
+                  <div className="flex items-center gap-3 mb-6 opacity-80">
+                    <Shield className="w-5 h-5 text-[#818CF8]" />
+                    <span className="text-sm tracking-widest text-[#818CF8] uppercase font-medium">{CONFIG.rulesTitle}</span>
+                  </div>
+                  
+                  {CONFIG.rules.map((rule, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + (idx * 0.15), duration: 0.6 }}
+                      className="flex items-start gap-4 p-4 sm:p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors"
                     >
-                      <div className="relative rounded-xl overflow-hidden aspect-video bg-black/50">
-                        {/* Fallback pattern to show if image is missing */}
-                        <img 
-                          src={photo.img} 
-                          onError={(e) => {
-                            // If the actual image fails to load, use a beautiful placeholder
-                            e.currentTarget.src = photo.fallback;
-                          }}
-                          alt="Anı" 
-                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                        <div className="absolute bottom-4 left-4 right-4 text-white/90 font-light text-sm flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-[#C084FC]" />
-                          {photo.caption}
-                        </div>
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#818CF8]/20 to-[#E879F9]/20 flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/5">
+                        <span className="text-white/80 font-bold text-sm">{idx + 1}</span>
                       </div>
+                      <p className="text-white/70 font-light leading-relaxed text-sm sm:text-base">
+                        {rule}
+                      </p>
                     </motion.div>
                   ))}
-                  <p className="text-xs text-white/30 text-center italic mt-2">
-                    (Görseller otomatik yüklenmezse diye çok hoş yer tutucular koydum, ama senin attığın resimleri senin yüklemen gerekiyor)
-                  </p>
                 </div>
 
-                {/* Footer Notes */}
-                <div className="bg-white/5 rounded-2xl p-5 border border-white/5 mb-8">
-                  <p className="text-sm font-light text-white/60 italic border-l-2 border-[#818CF8] pl-4">
-                    {CONFIG.postScript}
-                  </p>
+                {/* ETKİLEŞİMLİ GİZLİ MESAJ (Korundu) */}
+                <div className="mb-12">
+                  {!secretUnlocked ? (
+                    <motion.button 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                      onClick={handleUnlockSecret}
+                      className="w-full py-6 sm:py-8 bg-gradient-to-r from-[#818CF8]/5 to-[#E879F9]/5 border border-[#818CF8]/30 rounded-2xl flex flex-col items-center justify-center gap-3 hover:from-[#818CF8]/10 hover:to-[#E879F9]/10 transition-all group cursor-pointer"
+                    >
+                      <Lock className="text-[#818CF8] w-6 h-6 group-hover:scale-110 transition-transform" />
+                      <span className="text-[#818CF8] text-xs sm:text-sm tracking-[0.2em] uppercase font-medium">
+                        Gizli Paketi Aç
+                      </span>
+                    </motion.button>
+                  ) : (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      className="w-full p-6 sm:p-8 bg-gradient-to-br from-[#818CF8]/10 to-[#E879F9]/10 border border-[#E879F9]/30 rounded-2xl text-center shadow-[0_0_30px_rgba(232,121,249,0.15)]"
+                    >
+                      <Unlock className="text-[#E879F9] w-6 h-6 mx-auto mb-4" />
+                      <p className="text-white font-medium text-base sm:text-lg mb-2">
+                        Hedef Kilitlendi: {CONFIG.friendName}
+                      </p>
+                      <p className="text-white/80 font-light text-sm sm:text-base leading-relaxed italic">
+                        "{CONFIG.secretMessage}"
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Sign-off */}
