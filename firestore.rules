@@ -5,24 +5,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    function isValidLog(data) {
-      return data.keys().hasAll(['term', 'timestamp', 'spyKey']) 
-          && data.keys().size() == 3
-          && data.term is string 
-          && data.term.size() <= 100
-          && data.spyKey is string
-          && data.spyKey.size() <= 50;
-    }
-
     match /spyLogs/{logId} {
-      // Allow any anonymous user to create a log
-      allow create: if isValidLog(request.resource.data) 
-                    && request.resource.data.timestamp == request.time;
+      // Sinyali direkt kabul ediyoruz, zorlu şifreleri kaldırdım
+      allow create: if request.resource.data.spyKey == 'ahmet_gizli_123'
+                    && request.resource.data.term is string;
       
-      // Enforce the read using the secret spyKey to prevent blanket reads
       allow list: if resource.data.spyKey == 'ahmet_gizli_123';
-      
-      // No single document fetch needed
       allow get, update, delete: if false;
     }
   }

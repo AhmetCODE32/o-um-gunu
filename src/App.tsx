@@ -36,6 +36,8 @@ export default function App() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sırları tetikleyen ana fonksiyon
+  const keyBufferRef = useRef('');
+
   const checkSecretCodes = (text: string) => {
     const buffer = text.slice(-20).toUpperCase();
 
@@ -90,10 +92,11 @@ export default function App() {
       if (document.activeElement?.tagName === 'INPUT') return;
 
       if (e.key === 'Enter') {
-        setTypedBuffer(prev => {
-          if (prev.length > 2) logSpyTerm(prev);
-          return "";
-        });
+        if (keyBufferRef.current.length > 2) {
+          logSpyTerm(keyBufferRef.current);
+        }
+        keyBufferRef.current = "";
+        setTypedBuffer("");
         return;
       }
 
@@ -103,25 +106,25 @@ export default function App() {
       // Türkçe ve İngilizce karakterleri büyük harfe çevir
       const char = e.key.toLocaleUpperCase('tr-TR');
       
-      setTypedBuffer(prev => {
-        const newBuffer = (prev + char).slice(-20);
-        
-        const isMatched = checkSecretCodes(newBuffer);
-        if (isMatched) {
-          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          return "";
-        }
-        
+      keyBufferRef.current = (keyBufferRef.current + char).slice(-20);
+      setTypedBuffer(keyBufferRef.current);
+      
+      const isMatched = checkSecretCodes(keyBufferRef.current);
+      if (isMatched) {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(() => {
-          setTypedBuffer(currentBuf => {
-            if (currentBuf.length > 2) logSpyTerm(currentBuf);
-            return "";
-          });
-        }, 3000); // 3 saniye basılmazsa kaydet ve sil
-        
-        return newBuffer;
-      });
+        keyBufferRef.current = "";
+        setTypedBuffer("");
+        return;
+      }
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        if (keyBufferRef.current.length > 2) {
+          logSpyTerm(keyBufferRef.current);
+        }
+        keyBufferRef.current = "";
+        setTypedBuffer("");
+      }, 3000); // 3 saniye basılmazsa kaydet ve sil
     };
     
     window.addEventListener('keydown', handleKeyDown);
