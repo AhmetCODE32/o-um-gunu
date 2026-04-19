@@ -7,7 +7,6 @@ const CONFIG = {
   friendName: "Altar",
   message: "Geriye dönüp bakıyorum da...\nAramızda kilometreler olsa da aslında hep yan yanaydık. Ne yaşarsak yaşayalım ekranın diğer ucunda o sağlam bağı hiç koparmadık.\n\nKulaklıkları takıp sabahlara kadar süren o bitmeyen sohbetler, beraber sırt sırta verip taşıdığımız oyunlar, birbirimize attığımız mesajlar... Belki karşılıklı aynı masada kahve içemedik ama en gerçek dostluğu biz kurduk.\n\nSeninle koridoru tuttuğumuz gibi hayatta da birbirimizin sırtını kolladık. Büyüdük, değiştik ama o saf bağımız hiç değişmedi.\n\nYeni yaşın sana umduğundan da güzel anılar, bol kahkaha, sıfır dert ve her şeyin en iyisini getirsin. İyi ki doğdun dostum.",
   
-  // İstatistikler yerine gelen 'Yazılı Olmayan Kurallarımız' konsepti
   rulesTitle: "Yazılı Olmayan Kurallarımız",
   rules: [
     "Aramızdaki kilometreler sadece oyundaki ping'e yansır, dostluğumuza asla.",
@@ -63,7 +62,6 @@ export default function App() {
   return (
     <div className="relative min-h-[100dvh] bg-[#030305] text-[#F3F4F6] overflow-hidden flex items-center justify-center p-3 sm:p-6 font-sans selection:bg-[#A78BFA] selection:text-white">
       
-      {/* Elegant Ambient Background */}
       <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[60%] rounded-full bg-[#818CF8] opacity-10 blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-5%] w-[60%] h-[60%] rounded-full bg-[#E879F9] opacity-10 blur-[120px] pointer-events-none"></div>
 
@@ -109,13 +107,10 @@ export default function App() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
             className="w-full max-w-[600px] relative z-10"
           >
-            {/* Elegant Glass Card */}
             <div className="bg-[#0f0f13]/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 relative w-full h-[90dvh] sm:h-auto sm:max-h-[85vh] flex flex-col overflow-hidden">
               
-              {/* Header Gradient Line */}
               <div className="h-1 w-full bg-gradient-to-r from-[#818CF8] via-[#C084FC] to-[#E879F9]"></div>
 
-              {/* Scrollable Content */}
               <div className="p-6 sm:p-10 overflow-y-auto overscroll-contain flex-1 custom-scrollbar">
                 
                 <div className="flex items-center gap-3 mb-8 opacity-60">
@@ -134,7 +129,6 @@ export default function App() {
                   {CONFIG.message}
                 </div>
 
-                {/* YAZILI OLMAYAN KURALLAR BÖLÜMÜ (İstatistikler Yerine) */}
                 <div className="mb-12 space-y-4">
                   <div className="flex items-center gap-3 mb-6 opacity-80">
                     <Shield className="w-5 h-5 text-[#818CF8]" />
@@ -159,7 +153,6 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* ETKİLEŞİMLİ GİZLİ MESAJ (Korundu) */}
                 <div className="mb-12">
                   {!secretUnlocked ? (
                     <motion.button 
@@ -191,7 +184,6 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Sign-off */}
                 <div className="flex justify-between items-end pt-6 border-t border-white/10">
                   <div className="flex flex-col">
                     <span className="text-white/40 text-xs tracking-widest uppercase mb-1">Gönderen Dostun</span>
